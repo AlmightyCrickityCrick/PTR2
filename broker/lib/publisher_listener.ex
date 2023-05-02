@@ -1,13 +1,15 @@
-defmodule Register do
+defmodule PublisherListener do
   use GenServer
 
-  def start_link(_args) do
-    GenServer.start_link(__MODULE__, [], name: :register)
+  def start_link(args) do
+    IO.puts("#{args} starting")
+    GenServer.start_link(__MODULE__, [], name: args)
   end
 
-  def init(arg) do
-    {:ok, socket} = :gen_tcp.listen(4000, [:binary, packet: :line, active: false, reuseaddr: true])
-    IO.puts("Ready to serve registration")
+
+  def init(_args) do
+    {:ok, socket} = :gen_tcp.listen(5000, [:binary, packet: :line, active: false, reuseaddr: true])
+    IO.puts("Ready to get random messages")
     Task.start_link(fn -> loop_acceptor(socket) end)
 
     {:ok, []}
@@ -22,9 +24,6 @@ defmodule Register do
   defp serve(socket) do
     message = socket |> read_line()
     IO.puts(message)
-    # if(String.contains?(message, "publisher")) do
-      DynamicSupervisor.start_child(PublisherSupervisor, Supervisor.child_spec({PublisherListener, String.to_atom("pub_list1")}, id: String.to_atom("pub_list1")))
-    # end
 
     write_line(message, socket)
     serve(socket)
@@ -42,5 +41,6 @@ defmodule Register do
   def handle_info(msg, _state) do
       IO.puts(msg)
   end
+
 
 end

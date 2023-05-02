@@ -10,6 +10,7 @@ defmodule PubSub do
 
     children = [
       Supervisor.child_spec({Register, []}, id: :register, restart: :permanent),
+      Supervisor.child_spec({PublisherSupervisor, []}, id: :pub_sup, restart: :permanent),
     ]
 
     Supervisor.init(children, [strategy: :one_for_one, max_restarts: 200])
