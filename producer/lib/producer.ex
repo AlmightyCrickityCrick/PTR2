@@ -6,25 +6,47 @@ defmodule Producer do
   end
 
   def init(args) do
-    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4000, [:binary, packet: :line, active: false])
-    Process.sleep(100)
-    resp = :gen_tcp.send(socket, "type: producer, action: register, name: #{"producer#{args}"}\n")
-    {p, resp} = :gen_tcp.recv(socket, 0)
-    IO.puts(resp)
-
-    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 5000, [:binary, packet: :line, active: false])
-    send_message_loop(socket)
-
-    {:ok, %{name: String.to_atom("producer#{args}")}}
+    register(args)
+    Task.start_link(fn -> work(args) end)
+    {:ok, %{name: "producer#{args}"}}
   end
 
-  def send_message_loop(socket) do
+  def register(args) do
+    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4000, [:binary, packet: :raw, active: false])
+    IO.puts("Starting producer #{args}")
+    Process.sleep(100)
+    msg = %{type: "producer", action: "register", name: "producer#{args}"}
+    # msg_to_send = for {name, val} <- msg, into: <<>>, do: "#{name}: #{val},"
+    msg_to_send = Poison.encode!(msg)
+    resp = :gen_tcp.send(socket, msg_to_send <> "/q\n")
+    r = :gen_tcp.shutdown(socket, :read_write)
+  end
+
+  def work(args) do
+    IO.puts("Sending messages from producer #{args}")
+    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 5000, [:binary, packet: :line, active: false])
+    send_message_loop(socket, "producer#{args}")
+  end
+
+  def send_message_loop(socket, name) do
     Process.sleep(5000)
-    resp = :gen_tcp.send(socket, "tipa random producer message\n")
+    m = make_message(name) |> Poison.encode!()
+    resp = :gen_tcp.send(socket, m <> "/q\n")
     {p, resp} = :gen_tcp.recv(socket, 0)
     IO.puts(resp)
-    send_message_loop(socket)
+    send_message_loop(socket, name)
 
+  end
+
+  def make_message(name) do
+    topics = ["kittens", "puppies", "tweets", "garbage"]
+    content = ["Hello", "Bye", "Elixir is a dynamic, functional \nlanguage for building scalable and maintainable applications", "meaow", "woof"]
+    message = if(Enum.random([0, 1]) == 0) do
+     %{producer: name, topic: Enum.random(topics), content: Enum.random(content)}
+    else
+      %{topic: Enum.random(topics), content: Enum.random(content)}
+    end
+    message
   end
 
 

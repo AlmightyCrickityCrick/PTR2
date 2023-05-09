@@ -8,8 +8,8 @@ defmodule PublisherListener do
 
 
   def init(_args) do
-    {:ok, socket} = :gen_tcp.listen(5000, [:binary, packet: :line, active: false, reuseaddr: true])
     IO.puts("Ready to get random messages")
+    {_, socket} = List.first(:ets.lookup(:app, :pub_socket))
     Task.start_link(fn -> loop_acceptor(socket) end)
 
     {:ok, []}
@@ -18,23 +18,30 @@ defmodule PublisherListener do
   defp loop_acceptor(socket) do
     {:ok, client} = :gen_tcp.accept(socket)
     serve(client)
-    loop_acceptor(socket)
+    # loop_acceptor(socket)
   end
 
   defp serve(socket) do
-    message = socket |> read_line()
-    IO.puts(message)
-
-    write_line(message, socket)
+    message = read_message(socket, "") |>Poison.decode!()
+    GenServer.cast(:mess_router, {:publish, message})
+    acknowledge("ok\n", socket)
     serve(socket)
   end
 
-  defp read_line(socket) do
-    {:ok, data} = :gen_tcp.recv(socket, 0)
-    data
+  defp read_message(socket, message) do
+    case :gen_tcp.recv(socket, 0) do
+    {:ok, data} ->
+      if (String.contains?(data, "/q")) do
+        String.replace(data, "/q", "")
+      else
+        read_message(socket, message <> data)
+      end
+      {:error, _} ->
+        :ok
+    end
   end
 
-  defp write_line(line, socket) do
+  defp acknowledge(line, socket) do
     :gen_tcp.send(socket, line)
   end
 
