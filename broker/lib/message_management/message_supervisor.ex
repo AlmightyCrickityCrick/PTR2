@@ -1,4 +1,4 @@
-defmodule PubSub do
+defmodule MessageSupervisor do
   use Supervisor
 
   def start_link(_args) do
@@ -9,10 +9,13 @@ defmodule PubSub do
     Process.flag(:trap_exit, true)
 
     children = [
-      Supervisor.child_spec({Register, []}, id: :register, restart: :permanent),
+      Supervisor.child_spec({MessageRouter, []}, id: :mess_router, restart: :permanent),
+      Supervisor.child_spec({DeadLetter, []}, id: :dead_letter, restart: :permanent),
+
     ]
 
     Supervisor.init(children, [strategy: :one_for_one, max_restarts: 200])
 
   end
+
 end
