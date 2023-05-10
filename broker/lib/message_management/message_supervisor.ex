@@ -11,6 +11,7 @@ defmodule MessageSupervisor do
     children = [
       Supervisor.child_spec({MessageRouter, []}, id: :mess_router, restart: :permanent),
       Supervisor.child_spec({DeadLetter, []}, id: :dead_letter, restart: :permanent),
+      Supervisor.child_spec({MessageCacher, []}, id: :mess_cacher, restart: :permanent),
 
     ]
 

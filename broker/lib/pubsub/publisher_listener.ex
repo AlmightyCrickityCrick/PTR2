@@ -24,7 +24,7 @@ defmodule PublisherListener do
   defp serve(socket) do
     message = read_message(socket, "") |>Poison.decode!()
     GenServer.cast(:mess_router, {:publish, message})
-    acknowledge("ok\n", socket)
+    acknowledge("ok", socket)
     serve(socket)
   end
 
@@ -42,7 +42,7 @@ defmodule PublisherListener do
   end
 
   defp acknowledge(line, socket) do
-    :gen_tcp.send(socket, line)
+    :gen_tcp.send(socket, line <> "/q\n")
   end
 
   def handle_info(msg, _state) do

@@ -77,6 +77,7 @@ defmodule TcpSubscriberClient do
       send_message(socket, message)
       resp = read_message(socket, "")
       if(String.contains?(resp, "received")) do
+        GenServer.cast(:mess_cacher, {:delete_message, message})
         true
       else
         try_send_message(socket, message, trial + 1)

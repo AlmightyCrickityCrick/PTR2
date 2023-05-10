@@ -54,9 +54,9 @@ defmodule Client do
   end
 
   def listening_loop(socket, args) do
-    m = read_message(socket, "")
-    IO.inspect(Poiosno.decode!(m))
-    resp = :gen_tcp.send(socket, "received" <> "/q\n")
+    m = read_message(socket, "") |> Poison.decode!()
+    IO.inspect(m)
+    resp = :gen_tcp.send(socket, "received: #{Map.get(m, "id")}" <> "/q\n")
 
     listening_loop(socket, args)
   end
