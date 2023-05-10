@@ -51,7 +51,7 @@ defmodule MQTTClient do
   end
 
   def register(name) do
-    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4000, [:binary, packet: :raw, active: false])
+    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4040, [:binary, packet: :raw, active: false])
     IO.puts("Starting #{name}")
     Process.sleep(100)
     msg = %{type: "client", protocol: "mqtt" , action: "register", name: name}
@@ -75,7 +75,7 @@ defmodule MQTTClient do
   end
 
   def subscribe(name, topic) do
-    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4000, [:binary, packet: :raw, active: false])
+    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4040, [:binary, packet: :raw, active: false])
     msg = %{to: topic, type: "topic"  , action: "subscribe", name: name}
     msg_to_send = Poison.encode!(msg)
     resp = :gen_tcp.send(socket, msg_to_send <> "/q\n")

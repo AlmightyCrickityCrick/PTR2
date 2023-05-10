@@ -6,7 +6,7 @@ defmodule Register do
   end
 
   def init(arg) do
-    {:ok, socket} = :gen_tcp.listen(4000, [:binary, packet: :line, active: false, reuseaddr: true])
+    {:ok, socket} = :gen_tcp.listen(4040, [:binary, packet: :line, active: false, reuseaddr: true])
     IO.puts("Ready to serve registration")
     Task.start_link(fn -> loop_acceptor(socket) end)
 

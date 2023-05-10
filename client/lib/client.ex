@@ -20,7 +20,7 @@ defmodule Client do
   end
 
   def register(args) do
-    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4000, [:binary, packet: :raw, active: false])
+    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4040, [:binary, packet: :raw, active: false])
     IO.puts("Starting client #{args}")
     Process.sleep(100)
     msg = %{type: "client", protocol: "tcp" , action: "register", name: "client#{args}"}
@@ -39,14 +39,14 @@ defmodule Client do
       :gen_tcp.send(socket, Poison.encode!(%{type: "introduction", name: "client#{args}"}) <> "/q\n")
     end
 
-    subscribe("client#{args}", Enum.random(["puppies", "kittens"]))
+    subscribe("client#{args}", Enum.random(["puppies", "kittens", "tweets"]))
 
     listening_loop(socket, args)
 
   end
 
   def subscribe(name, topic) do
-    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4000, [:binary, packet: :raw, active: false])
+    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4040, [:binary, packet: :raw, active: false])
     msg = %{to: topic, type: "topic"  , action: "subscribe", name: name}
     msg_to_send = Poison.encode!(msg)
     resp = :gen_tcp.send(socket, msg_to_send <> "/q\n")
