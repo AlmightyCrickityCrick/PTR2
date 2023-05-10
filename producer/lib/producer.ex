@@ -12,7 +12,7 @@ defmodule Producer do
   end
 
   def register(args) do
-    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 4040, [:binary, packet: :raw, active: false])
+    {:ok, socket} = :gen_tcp.connect(:broker, 4040, [:binary, packet: :raw, active: false])
     IO.puts("Starting producer #{args}")
     Process.sleep(100)
     msg = %{type: "producer", action: "register", name: "producer#{args}"}
@@ -24,7 +24,7 @@ defmodule Producer do
 
   def work(args) do
     IO.puts("Sending messages from producer #{args}")
-    {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, 5000, [:binary, packet: :line, active: false])
+    {:ok, socket} = :gen_tcp.connect(:broker, 5000, [:binary, packet: :line, active: false])
     send_message_loop(socket, "producer#{args}")
   end
 

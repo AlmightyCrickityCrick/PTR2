@@ -1,0 +1,27 @@
+version: '3'
+services:
+  broker:
+    build: ./broker
+    ports:
+      - "4040:4040"
+      - "5000:5000"
+      - "6000:6000"
+      - "7000:7000"
+  client:
+    build: ./client
+    depends_on:
+      - broker
+  producer:
+    build: ./producer
+    depends_on:
+      - broker
+  project1:
+    build: ./project1
+    depends_on:
+      - broker
+      - tweeter
+  tweeter:
+    image: alexburlacu/rtp-server:faf18x
+    ports:
+      - "4000:4000"
+
